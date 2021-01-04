@@ -18,6 +18,33 @@ git clone http://this/repo.git ~/.local/share/zim/plugins/insert_latex/
 
 ```
 
+# Template
+
+```latex
+\documentclass[
+    convert={
+        convertexe={convert},
+        command=\unexpanded{{
+            \convertexe \space 
+            -density \density \space 
+            \infile \space 
+            -resize \size \space 
+            \outfile}},
+        density=800,size=800x600,outext=.png
+    },
+    border={.5 .5 .5 2mm}
+]{standalone}
+
+\usepackage{bytefield}
+\usepackage{graphicx}
+
+\begin{document}
+    \begin{bytefield}{32}
+    % do some stuff
+    \end{bytefield}
+\end{document}
+```
+
 # Example 
 
 ## LaTeX bytefield 
@@ -55,6 +82,4 @@ With the following LaTeX scripts:
 you can get this in zim pages:
 
 ![gdt](data/latex.png)
-
-TIPS: The `\pagestyle{empty}`, Produces empty heads and feet, makes the output image fit the content's size. It's quite useful.
 
