@@ -8,8 +8,8 @@ from zim.fs import File, TmpFile
 from zim.applications import Application, ApplicationError
 
 # TODO put these commands in preferences
-latexcmd = ('latex', '-no-shell-escape', '-halt-on-error')
-dvipngcmd = ('dvipng', '-q', '-bg', 'Transparent', '-T', 'tight', '-o')
+latex_cmd = ('latex', '-shell-escape', '-halt-on-error')
+convert_cmd = ('convert', )
 
 
 class InsertLatexPlugin(PluginClass):
@@ -24,10 +24,10 @@ This plugin provides an Latex editor for zim based on Latex.
 
     @classmethod
     def check_dependencies(klass):
-        has_latex = Application(latexcmd).tryexec()
-        has_dvipng = Application(dvipngcmd).tryexec()
-        return (has_latex and has_dvipng), \
-               [('latex', has_latex, True), ('dvipng', has_dvipng, True)]
+        has_latex = Application(latex_cmd).tryexec()
+        has_convert = Application(convert_cmd).tryexec()
+        return (has_latex and has_convert), \
+               [('latex', has_latex, True), ('convert', has_convert, True)]
 
 
 class BackwardLatexImageObjectType(BackwardImageGeneratorObjectType):
@@ -69,24 +69,18 @@ class LatexGenerator(ImageGeneratorClass):
 
         # Call latex
         logfile = File(self.texfile.path[:-4] + '.log')  # len('.tex') == 4
-        print(">>>", self.texfile, logfile)
+        print("[PLUGINS:INSERT LATEX] >>>", self.texfile, logfile)
 
         try:
-            latex = Application(latexcmd)
+            latex = Application(latex_cmd)
             latex.run((self.texfile.basename,), cwd=self.texfile.dir)
         except ApplicationError:
-            # log should have details of failure
+            print("[PLUGINS:INSERT LATEX] ApplicationError")
             return None, logfile
 
-        # Call dvipng
-        dvifile = File(self.texfile.path[:-4] + '.dvi')  # len('.tex') == 4
-        pngfile = File(self.texfile.path[:-4] + '.png')  # len('.tex') == 4
-        dvipng = Application(dvipngcmd)
-        dvipng.run((pngfile, dvifile))  # output, input
-        # No try .. except here - should never fail
-        # TODO dvipng can start processing before latex finished - can we win speed there ?
+        png_file = File(self.texfile.path[:-4] + '.png')  # len('.tex') == 4
 
-        return pngfile, logfile
+        return png_file, logfile
 
     def cleanup(self):
         path = self.texfile.path
